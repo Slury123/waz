@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Wąż</title>
+  <style>
+    body {
+      background: #000;
+      color: #0f0;
+      font-family: monospace;
+      text-align: center;
+    }
+    canvas {
+      background: #111;
+      display: block;
+      margin: 40px auto;
+      border: 4px solid #0f0;
+    }
+  </style>
+</head>
+<body>
+  <h1>🐍 WĄŻ — JavaScript</h1>
+  <canvas id="game" width="400" height="400"></canvas>
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+
+    const gridSize = 20;
+    const tileCount = canvas.width / gridSize;
+
+    let snake = [{ x: 10, y: 10 }];
+    let food = { x: 15, y: 15 };
+    let dx = 1; // rusza w prawo
+    let dy = 0;
+    let score = 0;
+
+    document.addEventListener("keydown", (e) => {
+      switch (e.key) {
+        case "ArrowUp":
+          if (dy === 0) { dx = 0; dy = -1; }
+          break;
+        case "ArrowDown":
+          if (dy === 0) { dx = 0; dy = 1; }
+          break;
+        case "ArrowLeft":
+          if (dx === 0) { dx = -1; dy = 0; }
+          break;
+        case "ArrowRight":
+          if (dx === 0) { dx = 1; dy = 0; }
+          break;
+      }
+    });
+
+    function gameLoop() {
+      const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+
+      // Śmierć po uderzeniu w ścianę
+      if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+        return gameOver();
+      }
+
+      // Śmierć po zjedzeniu siebie
+      for (let segment of snake) {
+        if (segment.x === head.x && segment.y === head.y) {
+          return gameOver();
+        }
+      }
+
+      snake.unshift(head);
+
+      // Zjadanie jedzenia
+      if (head.x === food.x && head.y === food.y) {
+        score++;
+        placeFood();
+      } else {
+        snake.pop();
+      }
+
+      drawGame();
+      setTimeout(gameLoop, 100);
+    }
+
+    function drawGame() {
+      ctx.fillStyle = "#111";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Jedzenie
+      ctx.fillStyle = "#f00";
+      ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize, gridSize);
+
+      // Wąż
+      ctx.fillStyle = "#0f0";
+      for (let segment of snake) {
+        ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize - 2, gridSize - 2);
+      }
+
+      // Wynik
+      ctx.fillStyle = "#0f0";
+      ctx.fillText("Wynik: " + score, 10, canvas.height - 10);
+    }
+
+    function placeFood() {
+      food = {
+        x: Math.floor(Math.random() * tileCount),
+        y: Math.floor(Math.random() * tileCount)
+      };
+    }
+
+    function gameOver() {
+      alert("💀 KONIEC GRY! Twój wynik: " + score);
+      snake = [{ x: 10, y: 10 }];
+      dx = dy = score = 0;
+      placeFood();
+    }
+
+    placeFood();
+    gameLoop();
+
+  </script>
+</body>
+</html>
